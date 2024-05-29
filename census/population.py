@@ -37,7 +37,7 @@ def get_all_msoas(file_path):
 
 
 def brighton_msoa_population():
-    file_path = "./census/brighton_population.csv"
+    file_path = "./data/census/brighton_population.csv"
     unique_msoas = get_all_msoas(file_path)
     return [get_msoa_population(msoa, file_path) for msoa in unique_msoas]
 

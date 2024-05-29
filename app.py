@@ -4,7 +4,7 @@ import folium
 from folium.features import GeoJson, GeoJsonPopup
 from dataclasses import asdict
 
-from density import MsoaDensityData, get_msoa_data
+from density import MsoaDensityData, get_msoa_data_cached, get_msoa_data
 
 app = Flask(__name__)
 
@@ -13,7 +13,7 @@ app = Flask(__name__)
 def index():
     # Get your MsoaDensityData objects
     msoa_data_list: List[MsoaDensityData] = (
-        get_msoa_data()
+        get_msoa_data_cached()
     )  # Assuming you have a function that returns a list of MsoaDensityData objects
 
     map = folium.Map(location=[50.8225, -0.1372], zoom_start=12)
@@ -26,6 +26,7 @@ def index():
             popup=folium.GeoJsonPopup(
                 fields=[
                     "msoa_code",
+                    "msoa_name",
                     "population",
                     # "urban_area",
                     # "building_coverage_area",
@@ -41,6 +42,7 @@ def index():
                 ],
                 aliases=[
                     "MSOA Code",
+                    "Area name",
                     "Population",
                     # "Urban Area",
                     # "Building Coverage Area",

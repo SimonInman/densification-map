@@ -10,6 +10,62 @@
 </head>
 
 <body>
+    <h1>Brighton Density Map</h1>
+    <h2>What is this site? </h2>
+
+    <p> This website shows how many homes could be built in Brighton through densification of existing
+        suburban areas (rather than building on greenfield sites).
+    </p>
+
+    <h2>How does it work?</h2>
+    <p>This was inspired by <a href="https://russellcurtis.co.uk/2024/04/03/towards-a-suburban-renaissance/">similar
+            work</a> similar work analysing the potential for suburban development in the outer London Boroughs.
+    </p>
+
+    <p>This map analyses census data in Brighton and Hove. It looks at each MSOA ("Middle layer Super Output Area") -
+        which you can think of as a neighbourhood.
+        For each MSOA, it calculates the built-up area, number of dwellings, population, etc, and assesses how many new
+        homes might be built there on small sites.
+    </p>
+    <p>The map attempts to exclude greenspace/sporting facilities/etc from the calculations, but this may be imperfect.
+        You can see the relevant areas considered highlighted blue on the map.</p>
+
+    <h2>Why do this?</h2>
+    <p>In 2018, Croydon introduced a Supplementary Planning Document emphasiszing suburban intensification. This led to
+        a boom in housebuilding, with the number of homes being delivered on small sites trippling during the years this
+        policy was in effect.</p>
+    <p>Given Brighton's geography, it is hard for the city to build outwards. So adding gentle density to the suburbs
+        will be a vital part of providing the homes Brighton desperately needs.</p>
+
+    <h2>How is the number of new homes calculated?</h2>
+    <p> The calculation is based on the formula provided in the above (which is written by an architect experienced at
+        designing "gentle density" in London). It considers what percent of the land is built on, how many of the homes
+        are detached/semi-detached.
+        However, I haven't introduced a minimum density like linked article does - this didn't seem appropriate for
+        (most of) Brighton.
+        So the formula is as follows: </p>
+
+
+    <pre class="wp-block-code"><code><em># First, calculate the initial uplift in density based on the proportion of "family homes"</em>
+
+    <strong>IF</strong> familyHouses &gt; 40% <strong>THEN</strong> newDensity = existingDensity x 1.5
+    <strong>ELSE IF</strong> familyHouses &lt; 10% <strong>THEN</strong> newDensity = existingDensity x 1.1
+    <strong>ELSE</strong> newDensity = existingDensity x 1.25
+    
+    <em># Then add a compound density based on the total percentage coverage (footprint) of buildings over the MSOA area</em>
+        
+    <strong>IF</strong> coverage &lt; 20% <strong>THEN</strong> newDensity = newDensity x 1.4
+    
+</code></pre>
+
+
+
+
+
+    <h2>Where does the data come from?</h2>
+    <p>The data is from the 2021 Census and also the Ordinance Survey Zoomstack data which provides information about
+    </p>
+
     {{ map_html|safe }}
 </body>
 

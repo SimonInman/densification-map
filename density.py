@@ -1,5 +1,6 @@
 from dataclasses import asdict, dataclass
 import json
+import pickle
 import time
 from typing import List
 from census.population import get_msoa_population
@@ -21,6 +22,7 @@ DATA_FOLDER = "./census"
 @dataclass
 class MsoaDensityData:
     msoa_code: str
+    msoa_name: str
     geojson: str
     dwelling_info: MsoaDwellings
     urban_area: float
@@ -65,10 +67,10 @@ class MsoaDensityData:
             f"{self.dwelling_info.detached_or_semi / self.dwelling_info.total_dwellings * 100:.2f}%"
         )
         properties["population_density"] = (
-            f"{self.population / area_in_hectares} people / hectare"
+            f"{self.population / area_in_hectares:.2f} people / hectare"
         )
         properties["occupation"] = (
-            f"{self.population / self.dwelling_info.total_dwellings} people / dwelling"
+            f"{self.population / self.dwelling_info.total_dwellings:.2f} people / dwelling"
         )
         properties["dwelling_density"] = (
             f"{self.dwelling_info.total_dwellings / area_in_hectares:.2f} dwellings / hectare"
@@ -97,6 +99,17 @@ class MsoaDensityData:
         return feature_collection
 
 
+def get_msoa_name(msoa_code: str, file_path: str) -> str:
+    # Read the csv file line by line. If column 0 matches the msoa_code, return column 3
+    with open(file_path, "r") as file:
+        for line in file:
+            row = line.strip().split(",")
+            if row[0] == msoa_code:
+                return row[3]
+
+    assert False, f"MSOA code {msoa_code} not found in file {file_path}"
+
+
 def density_data_for_msoa(msoa_code: str):
     all_msoa_dwellings = brighton_msoa_dwellings()
     this_msoa_dwellings = [d for d in all_msoa_dwellings if d.msoa_code == msoa_code][0]
@@ -109,8 +122,11 @@ def density_data_for_msoa(msoa_code: str):
     )
     geojson = geojson_for_msoa(msoa_code)
 
+    name = get_msoa_name(msoa_code, DATA_FOLDER + "/msoa_names.csv")
+
     out = MsoaDensityData(
         msoa_code=msoa_code,
+        msoa_name=name,
         geojson=geojson,
         dwelling_info=this_msoa_dwellings,
         urban_area=urban_area,
@@ -148,6 +164,18 @@ def print_density_data(density_data: MsoaDensityData):
     )
 
 
+def get_msoa_data_cached() -> List[MsoaDensityData]:
+    # get the data from this dumped file:
+    # with open(DATA_FOLDER + "/brighton_full_density_data.json", "w") as file:
+    #    json.dump([asdict(d) for d in out], file)
+
+    with open(DATA_FOLDER + "/brighton_full_density_data.json", "rb") as file:
+        data = pickle.load(file)
+        print("Loaded data from cache")
+        print(data[0])
+        return data
+
+
 def get_msoa_data() -> List[MsoaDensityData]:
     start = time.time()
     all_brighton_msoas = get_all_msoas(
@@ -157,6 +185,10 @@ def get_msoa_data() -> List[MsoaDensityData]:
     out = [density_data_for_msoa(msoa_id) for msoa_id in all_brighton_msoas]
     end = time.time()
     print("Time taken to get all MSOAs: ", end - start)
+
+    # Dump the data to a json file
+    with open(DATA_FOLDER + "/brighton_full_density_data.json", "wb") as file:
+        pickle.dump(out, file)
 
     total_new_homes = sum(
         [
@@ -170,6 +202,7 @@ def get_msoa_data() -> List[MsoaDensityData]:
 
 
 def main():
+    get_msoa_data()
     # msoa_id = "E02003491"
     all_brighton_msoas = get_all_msoas(
         DATA_FOLDER + "/brighton_dwelling_types_counts.csv"
